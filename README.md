@@ -1,3 +1,13 @@
+The project is based on [mattermost-sticker-bot](https://github.com/inrydberg/mattermost-sticker-bot) from [inrydberg](https://github.com/inrydberg)
+This repository contains a revision of the original project.
+I would like to thank the author for the initial work.
+
+The main changes include:
+- Slash commands only — no mention of `@stickerbot`
+- It works in any chat rooms, even "user-user" without a bot.
+- Simple architecture — removes all complex logic from WebSocket
+- Automatic sessions are created when calling `/sticker ass`
+
 # Mattermost Sticker Bot
 
 ![Web Picker Interface](https://github.com/inrydberg/mattermost-sticker-bot/releases/download/release/example_1.png)
