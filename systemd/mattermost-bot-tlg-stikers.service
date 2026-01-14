@@ -1,0 +1,18 @@
+[Unit]
+Description=Mattermost Sticker Bot
+After=network.target
+
+[Service]
+Type=simple
+#User=your_username  # замените на ваше имя пользователя
+WorkingDirectory=/opt/mattermost-sticker-bot/
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=mattermost-bot
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

@@ -16,8 +16,8 @@ Watch the bot in action:
 
 ```bash
 # 1. Clone and enter directory
-git clone https://github.com/inrydberg/mattermost-sticker-bot
-cd mattermost-sticker-bot
+git clone https://github.com/shurakenas/mattermost-sticker-tgbot
+cd mattermost-sticker-tgbot
 
 # 2. Install dependencies
 npm install
@@ -30,7 +30,7 @@ cp .env.example .env
 npm start &
 
 # 5. Test in Mattermost
-# Type: @stickerbot help
+# Type: /stickerbot help
 ```
 
 Bot will be running on port 3333 for web interface!
@@ -71,8 +71,8 @@ Bot will be running on port 3333 for web interface!
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/inrydberg/mattermost-sticker-bot
-cd mattermost-sticker-bot
+git clone https://github.com/shurakenas/mattermost-sticker-tgbot
+cd mattermost-sticker-tgbot
 ```
 
 ### 2. Install Dependencies
@@ -135,11 +135,12 @@ MM_WS_URL=ws://localhost:8065/api/v4/websocket
 5. Click **Create Bot Account**
 6. **COPY THE ACCESS TOKEN** and add it to your `.env` file as `MM_BOT_TOKEN`
 
-### 2. Add Bot to Channels
+### 2. Setup slash command in Mattermost
 
-The bot must be invited to channels to respond to commands:
-1. Go to the channel where you want to use stickers
-2. Type `/invite @stickerbot`
+1. Go to Integrations → Slash Commands → Add Slash Command
+2. Set Trigger: "sticker"
+3. Set URL: "http://YOUR_SERVER:3333/slash-command"
+4. Save and use /sticker help
 
 ### 3. Enable Real-time Updates (Docker Users)
 
@@ -159,6 +160,8 @@ Then restart Mattermost: `docker-compose down && docker-compose up -d`
 npm start &
 # or
 node src/stickerbot.js &
+# or
+or use systemd (there is an example)
 ```
 
 ### Development Mode (with auto-reload)
@@ -178,12 +181,12 @@ The bot will:
 
 In any channel with the bot:
 
-- **`@stickerbot help`** - Show help menu (only visible to you)
-- **`@stickerbot ass`** - Open **A**daptive **S**ticker **S**elector web interface
+- **`/stickerbot help`** - Show help menu (only visible to you)
+- **`/stickerbot ass`** - Open **A**daptive **S**ticker **S**elector web interface
 
 ### Using the Web Interface
 
-1. Type `@stickerbot ass` in any channel
+1. Type `/stickerbot ass` in any channel
 2. Click the generated link (only visible to you)
 3. Browse sticker packs:
    - **memezey** - Popular meme stickers
@@ -260,12 +263,6 @@ The bot includes intelligent cache management:
 
 ## Troubleshooting
 
-### Bot not responding?
-- ✅ Verify bot is in the channel (`/invite @stickerbot`)
-- ✅ Check bot token in `.env` is correct
-- ✅ Ensure bot has System Admin role
-- ✅ Check console for connection errors
-
 ### Stickers not appearing immediately?
 - ✅ Add `MM_SERVICESETTINGS_ALLOWCORSFROM=*` to Mattermost config
 - ✅ Restart Mattermost after config change
@@ -303,7 +300,7 @@ DEBUG=* npm start
 
 You can easily add your own Telegram sticker packs through the web interface:
 
-1. **Open the sticker picker** with `@stickerbot ass`
+1. **Open the sticker picker** with `/stickerbot ass`
 2. **Click "+ Add Sticker Pack"** (top-right corner)
 3. **Enter pack details:**
    - **Pack Name**: A friendly name (e.g., "My Favorites")
