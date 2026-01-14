@@ -149,8 +149,12 @@ MM_WS_URL=ws://localhost:8065/api/v4/websocket
 
 1. Go to Integrations → Slash Commands → Add Slash Command
 2. Set Trigger: "sticker"
-3. Set URL: "http://YOUR_SERVER:3333/slash-command"
-4. Save and use /sticker help
+3. Set URL: "http://127.0.0.1:3333/slash-command"
+4. Request method: POST
+5. Auto-completion: True
+6. Hint for auto-completion: Send Telegram stickers
+7. Description for auto-completion: [help|ass]
+8. Save and use /sticker help
 
 ### 3. Enable Real-time Updates (Docker Users)
 
