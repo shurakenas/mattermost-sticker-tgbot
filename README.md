@@ -1,5 +1,7 @@
 The project is based on [mattermost-sticker-bot](https://github.com/inrydberg/mattermost-sticker-bot) from [inrydberg](https://github.com/inrydberg)
+
 This repository contains a revision of the original project.
+
 I would like to thank the author for the initial work.
 
 The main changes include:
