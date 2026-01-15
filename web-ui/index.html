@@ -438,138 +438,159 @@
         }
 
         async function loadStickers(packName) {
-            currentPack = packName;
-            packSelector.style.display = 'none';
-            stickerContainer.style.display = 'block';
-            backBtn.style.display = 'block';
+    currentPack = packName;
+    packSelector.style.display = 'none';
+    stickerContainer.style.display = 'block';
+    backBtn.style.display = 'block';
 
-            // Update active pack button
-            document.querySelectorAll('.pack-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent === packName);
-            });
+    // Update active pack button
+    document.querySelectorAll('.pack-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === packName);
+    });
 
-            stickerGrid.innerHTML = '<div class="loading"><div class="spinner"></div>Loading stickers...</div>';
+    stickerGrid.innerHTML = '<div class="loading"><div class="spinner"></div>Loading stickers...</div>';
 
-            try {
-                const response = await fetch(`/api/pack/${packName}`);
-                currentStickers = await response.json();
+    try {
+        const response = await fetch(`/api/pack/${packName}`);
+        currentStickers = await response.json();
 
-                stickerGrid.innerHTML = '';
+        stickerGrid.innerHTML = '';
 
-                // Load stickers in batches for faster initial display
-                const batchSize = 10;
-                let loaded = 0;
+        // Load stickers in batches for faster initial display
+        const batchSize = 10;
+        let loaded = 0;
 
-                function loadBatch() {
-                    const batch = currentStickers.slice(loaded, loaded + batchSize);
-                    batch.forEach((sticker, i) => {
-                        const index = loaded + i;
-                        const div = document.createElement('div');
-                        div.className = 'sticker-item';
-                        div.onclick = () => sendSticker(index);
+        function loadBatch() {
+            const batch = currentStickers.slice(loaded, loaded + batchSize);
+            batch.forEach((sticker, i) => {
+                const index = loaded + i;
+                const div = document.createElement('div');
+                div.className = 'sticker-item';
+                div.onclick = () => sendSticker(index);
 
-                        // Check sticker type based on URL extension
-                        const url = sticker.url;
-
-                        // Log what we're receiving for debugging
-                        if (index === 0) {
-                            console.log('First sticker data:', {
-                        //      url: url,
-                                isAnimated: sticker.isAnimated,
-                                isVideo: sticker.isVideo,
-                                thumbnailUrl: sticker.thumbnailUrl
-                            });
-                        }
-
-                        if (sticker.isAnimated && url.includes('.tgs')) {
-                            // TGS animated sticker - render with Lottie
-                            const container = document.createElement('div');
-                            container.style.cssText = 'width: 100%; height: 100%; position: relative;';
-                            div.appendChild(container);
-
-                            // Add TGS badge
-                            const badge = document.createElement('div');
-                            badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(102, 126, 234, 0.9); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold; z-index: 10;';
-                            badge.textContent = 'TGS';
-                            div.appendChild(badge);
-
-                            // Use proxy to avoid CORS issues
-                            const proxyUrl = `/proxy/tgs?url=${encodeURIComponent(url)}`;
-
-                            // Download and decompress TGS file, then render with Lottie
-                            fetch(proxyUrl)
-                                .then(response => response.arrayBuffer())
-                                .then(buffer => {
-                                    // Decompress TGS (gzipped Lottie JSON)
-                                    const decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
-                                    const animationData = JSON.parse(decompressed);
-
-                                    // Create Lottie animation with optimizations
-                                    const animation = lottie.loadAnimation({
-                                        container: container,
-                                        renderer: 'canvas', // Canvas is faster than SVG
-                                        loop: true,
-                                        autoplay: true,
-                                        animationData: animationData,
-                                        rendererSettings: {
-                                            preserveAspectRatio: 'xMidYMid slice',
-                                            clearCanvas: true,
-                                            progressiveLoad: false,
-                                            hideOnTransparent: true
-                                        }
-                                    });
-                                })
-                                .catch(err => {
-                                    console.error('Failed to load TGS:', err);
-                                    container.innerHTML = '<div style="text-align: center; font-size: 10px; color: #667eea; padding: 10px;">Failed to<br>load TGS</div>';
-                                });
-                        } else if (url.includes('.webm')) {
-                            // WEBM video sticker
-                            const video = document.createElement('video');
-                            video.src = url;
-                            video.autoplay = true;
-                            video.loop = true;
-                            video.muted = true;
-                            video.playsInline = true;
-                            video.style.width = '100%';
-                            video.style.height = '100%';
-                            video.style.objectFit = 'contain';
-                            div.appendChild(video);
-
-                            // Add WEBM badge
-                            const badge = document.createElement('div');
-                            badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(102, 126, 234, 0.9); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold;';
-                            badge.textContent = 'WEBM';
-                            div.appendChild(badge);
-                        } else if (!url.includes('.tgs')) {
-                            // Regular static sticker only (NOT TGS)
-                            const img = document.createElement('img');
-                            img.src = url;
-                            img.alt = sticker.emoji || 'Sticker';
-
-                            // Add IMG badge for static images
-                            const badge = document.createElement('div');
-                            badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(100, 100, 100, 0.7); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold;';
-                            badge.textContent = 'IMG';
-                            div.appendChild(badge);
-
-                            div.appendChild(img);
-                        }
-
-                        stickerGrid.appendChild(div);
+                // Для отладки
+                if (index === 0) {
+                    console.log('First sticker:', {
+                        url: sticker.url,
+                        isAnimated: sticker.isAnimated,
+                        isVideo: sticker.isVideo,
+                        emoji: sticker.emoji
                     });
-
-                    loaded += batchSize;
-                    if (loaded < currentStickers.length) {
-                        requestAnimationFrame(loadBatch);
-                    }
                 }
 
-                loadBatch();
-            } catch (error) {
-                stickerGrid.innerHTML = '<div class="loading">Failed to load stickers</div>';
+                // 1. WEBM видео стикеры
+                if (sticker.isVideo) {
+                    const video = document.createElement('video');
+                    video.src = sticker.url;
+                    video.autoplay = true;
+                    video.loop = true;
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'contain';
+                    
+                    // Добавляем обработчик ошибок
+                    video.onerror = (e) => {
+                        console.error('Video load error:', e);
+                        video.style.display = 'none';
+                        const fallback = document.createElement('div');
+                        fallback.innerHTML = '<div style="text-align:center;padding:20px;color:#667eea">🎬<br><small>WEBM</small></div>';
+                        div.appendChild(fallback);
+                    };
+                    
+                    div.appendChild(video);
+
+                    // Add WEBM badge
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(102, 126, 234, 0.9); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold;';
+                    badge.textContent = 'WEBM';
+                    div.appendChild(badge);
+                }
+                // 2. TGS анимированные стикеры
+                else if (sticker.isAnimated) {
+                    // TGS animated sticker - render with Lottie
+                    const container = document.createElement('div');
+                    container.style.cssText = 'width: 100%; height: 100%; position: relative;';
+                    div.appendChild(container);
+
+                    // Add TGS badge
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(102, 126, 234, 0.9); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold; z-index: 10;';
+                    badge.textContent = 'TGS';
+                    div.appendChild(badge);
+
+                    // URL is already proxied, fetch directly
+                    fetch(sticker.url)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            return response.arrayBuffer();
+                        })
+                        .then(buffer => {
+                            // Decompress TGS (gzipped Lottie JSON)
+                            const decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
+                            const animationData = JSON.parse(decompressed);
+
+                            // Create Lottie animation
+                            const animation = lottie.loadAnimation({
+                                container: container,
+                                renderer: 'canvas',
+                                loop: true,
+                                autoplay: true,
+                                animationData: animationData,
+                                rendererSettings: {
+                                    preserveAspectRatio: 'xMidYMid slice',
+                                    clearCanvas: true,
+                                    progressiveLoad: false,
+                                    hideOnTransparent: true
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Failed to load TGS:', err);
+                            container.innerHTML = '<div style="text-align: center; font-size: 10px; color: #667eea; padding: 10px;">Failed to<br>load TGS</div>';
+                        });
+                }
+                // 3. Статичные стикеры
+                else {
+                    const img = document.createElement('img');
+                    img.src = sticker.url;
+                    img.alt = sticker.emoji || 'Sticker';
+                    img.loading = 'lazy';
+                    
+                    // Обработчик ошибок загрузки
+                    img.onerror = (e) => {
+                        console.error('Image load error:', e);
+                        img.style.display = 'none';
+                        const fallback = document.createElement('div');
+                        fallback.innerHTML = `<div style="text-align:center;padding:20px;color:#667eea">${sticker.emoji || '🖼️'}</div>`;
+                        div.appendChild(fallback);
+                    };
+                    
+                    div.appendChild(img);
+
+                    // Add IMG badge
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(100, 100, 100, 0.7); color: white; padding: 2px 5px; border-radius: 10px; font-size: 10px; font-weight: bold;';
+                    badge.textContent = 'IMG';
+                    div.appendChild(badge);
+                }
+
+                stickerGrid.appendChild(div);
+            });
+
+            loaded += batchSize;
+            if (loaded < currentStickers.length) {
+                requestAnimationFrame(loadBatch);
             }
         }
+
+        loadBatch();
+    } catch (error) {
+        console.error('Failed to load stickers:', error);
+        stickerGrid.innerHTML = '<div class="loading">Failed to load stickers</div>';
+    }
+}
 
         async function sendSticker(index) {
             if (!sessionId) {
@@ -579,7 +600,8 @@
 
             // ALWAYS show converting/sending message immediately when sticker is clicked
             const sticker = currentStickers[index];
-            const isAnimated = sticker && (sticker.isVideo || sticker.url.includes('.webm') || sticker.isAnimated);
+            //const isAnimated = sticker && (sticker.isVideo || sticker.url.includes('.webm') || sticker.isAnimated);
+            const isAnimated = sticker && (sticker.isVideo || sticker.isAnimated);
 
             if (isAnimated) {
                 toast.textContent = '⏳ Converting to GIF...';
