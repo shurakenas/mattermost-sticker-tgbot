@@ -7,6 +7,9 @@ const WebmHandler = require('./handler_webm');
 const TgsHandler = require('./handler_tgs');
 const CacheManager = require('./cache_manager');
 
+// При получении стикеров всегда используйте useProxy=true
+//const stickers = await telegram.getAllStickerUrls(packName, true);
+
 class StickerBot {
     constructor(config) {
         this.serverUrl = config.serverUrl;
