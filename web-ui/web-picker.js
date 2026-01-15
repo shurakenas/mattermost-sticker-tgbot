@@ -96,6 +96,50 @@ class WebPicker {
         });
 
         // ========== API ENDPOINTS ==========
+
+        // Proxy for sticker files - hash lookup, token never exposed
+        this.app.get('/proxy/sticker', async (req, res) => {
+            const hash = req.query.id;
+            if (!hash) {
+                return res.status(400).send('Missing id parameter');
+            }
+
+            const url = this.telegram.getUrlFromHash(hash); // Нужен метод в TelegramAPI
+            if (!url) {
+                return res.status(404).send('Sticker not found');
+            }
+
+            try {
+                const axios = require('axios');
+                const response = await axios({
+                    method: 'GET',
+                    url: url,
+                    responseType: 'arraybuffer'
+                });
+
+                // Set appropriate content type based on URL
+                let contentType = 'application/octet-stream';
+                if (url.includes('.webp')) contentType = 'image/webp';
+                else if (url.includes('.png')) contentType = 'image/png';
+                else if (url.includes('.webm')) contentType = 'video/webm';
+                else if (url.includes('.tgs')) contentType = 'application/octet-stream';
+
+                res.set('Content-Type', contentType);
+                res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24h
+                res.send(response.data);
+            } catch (error) {
+                console.error('Sticker proxy error:', error.message);
+                res.status(500).send('Failed to fetch sticker');
+            }
+        });
+
+        // Serve converted GIF files
+        if (this.webmHandler) {
+            this.app.get('/gif/:filename', (req, res) => {
+                const gifPath = path.join(__dirname, '..', 'gif-cache', req.params.filename);
+                res.sendFile(gifPath);
+            });
+        }
         
         // Получить список пакетов
         this.app.get('/api/packs', (req, res) => {
@@ -121,13 +165,18 @@ class WebPicker {
                 telegramPackName = customPack.telegramName;
             }
 
-            const stickers = await this.telegram.getAllStickerUrls(telegramPackName);
+            const stickers = await this.telegram.getAllStickerUrls(telegramPackName, true);
             
             if (stickers.length > 0) {
                 this.stickerCache.set(packName, stickers);
             }
 
-            res.json(stickers);
+            res.json(stickers.map(s => ({
+                url: s.url, // Это должен быть проксированный URL типа /proxy/sticker?id=abc123
+                emoji: s.emoji,
+                isAnimated: s.isAnimated,
+                isVideo: s.isVideo
+            })));
         });
 
         // Отправить стикер (общий endpoint)
